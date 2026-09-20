@@ -10,7 +10,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'echo "Building the project..."'
-                sh 'docker build -t ksk6898/homework-usea-app-html:${BUILD_NUMBER} .'
+                sh 'docker build -t ksk6898/homework-app:${BUILD_NUMBER} .'
                
             }
         }
@@ -20,7 +20,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-id', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
                 }
-                sh 'docker push ksk6898/homework-usea-app-html:${BUILD_NUMBER}'
+                sh 'docker push ksk6898/homework-app:${BUILD_NUMBER}'
                 // Add your test commands here
             }
         }
@@ -33,9 +33,9 @@ pipeline {
                 // }
                     ssh '''
                         // remove container if it exists
-                        ssh root@3.107.167.19 docker stop homework-usea-app-html || true
+                        ssh root@3.107.167.19 docker stop homework-app || true
                     '''
-                    sh 'ssh root@3.107.167.19 docker run -d --name homework-usea-app-html -p 9099:80 ksk6898/homework-usea-app-html:${BUILD_NUMBER}'
+                    sh 'ssh root@3.107.167.19 docker run -d --name homework-app -p 9099:80 ksk6898/homework-app:${BUILD_NUMBER}'
                 // Add your deploy commands here
                 }
                 
