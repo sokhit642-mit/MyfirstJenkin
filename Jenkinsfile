@@ -25,8 +25,8 @@ pipeline {
             steps {
                 sh 'echo "Push image to registry..."'
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-id',
-                                                  usernameVariable: 'DOCKER_USERNAME',
-                                                  passwordVariable: 'DOCKER_PASSWORD')]) {
+                                                  usernameVariable: 'ksk6699',
+                                                  passwordVariable: 'KsKDockEr#2027')]) {
                     sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
                     sh 'docker push $IMAGE:$BUILD_NUMBER'
                     sh 'docker logout'
