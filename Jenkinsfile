@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // One place for the image name, so build/push/deploy can't drift apart.
         IMAGE = 'ksk6699/homework-app'
     }
 
@@ -36,7 +35,6 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh 'echo "Deploying the project..."'
-                // 'smm-ssh' = Jenkins credential (SSH Username with private key)
                 sshagent(credentials: ['smm-ssh']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no ubuntu@13.211.148.233 "
