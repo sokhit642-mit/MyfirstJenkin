@@ -23,19 +23,21 @@ pipeline {
             steps {
                 sh 'echo "Push image to registry..."'
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-id',
-                                                  usernameVariable: 'DOCKER_USERNAME',
-                                                  passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
-                    sh 'docker push $IMAGE:$BUILD_NUMBER'
-                    sh 'docker logout'
-                }
+                                  usernameVariable: 'DOCKER_USERNAME',
+                                  passwordVariable: 'DOCKER_PASSWORD')]) {
+                                    sh 'echo "USERNAME=[$DOCKER_USERNAME]"'
+                                    sh 'echo "PASSWORD_LEN=${#DOCKER_PASSWORD}"'
+                                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                                    sh 'docker push $IMAGE:$BUILD_NUMBER'
+                                    sh 'docker logout'
+                                }
             }
         }
 
         stage('Deploy') {
             steps {
                 sh 'echo "Deploying the project..."'
-                sshagent(credentials: ['docker-hub-id']) {
+                sshagent(credentials: ['smm-ssh']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no ubuntu@13.211.148.233 "
                             sudo docker rm -f homework-app || true
