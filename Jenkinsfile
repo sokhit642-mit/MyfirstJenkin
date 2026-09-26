@@ -33,9 +33,9 @@ pipeline {
                 // }
                     ssh '''
                         // remove container if it exists
-                        ssh root@3.107.167.19 docker stop homework-app || true
+                        ssh root@13.211.148.233 docker stop homework-app || true
                     '''
-                    sh 'ssh root@3.107.167.19 docker run -d --name homework-app -p 9099:80 ksk6898/homework-app:${BUILD_NUMBER}'
+                    sh 'ssh root@13.211.148.233 docker run -d --name homework-app -p 9099:80 ksk6898/homework-app:${BUILD_NUMBER}'
                 // Add your deploy commands here
                 }
                 
