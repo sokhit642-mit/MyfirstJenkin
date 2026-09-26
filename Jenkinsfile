@@ -39,7 +39,7 @@ pipeline {
                 sh 'echo "Deploying the project..."'
                 sshagent(credentials: ['smm-ssh']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no ubuntu@13.211.148.233 "
+                        ssh -o StrictHostKeyChecking=no ubuntu@13.211.201.133 "
                             sudo docker rm -f homework-app || true
                             sudo docker run -d --name homework-app -p 9099:80 $IMAGE:$BUILD_NUMBER
                         "
