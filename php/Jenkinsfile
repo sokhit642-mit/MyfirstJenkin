@@ -1,6 +1,9 @@
-Jenkins file : 
 pipeline {
     agent any
+
+    environment {
+        IMAGE = 'ksk6699/php-app'
+    }
 
     stages {
         stage('Checkout Code') {
@@ -8,35 +11,38 @@ pipeline {
                 checkout scm
             }
         }
+
         stage('Build') {
-            steps {
-                sh 'echo "Building the project..."'
-                sh 'docker build -t ksk6699/homework-app:${BUILD_NUMBER} .'
-               
-            }
+        steps {
+            sh 'echo "Building the project..."'
+            sh 'docker build -t $IMAGE:$BUILD_NUMBER -f php/Dockerfile php'
         }
+    }
+
         stage('Push Image') {
             steps {
                 sh 'echo "Push image to registry..."'
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-id', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-id',
+                                                  usernameVariable: 'DOCKER_USERNAME',
+                                                  passwordVariable: 'DOCKER_PASSWORD')]) {
                     sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
-                    sh 'docker push ksk6699/homework-app:${BUILD_NUMBER}'
+                    sh 'docker push $IMAGE:$BUILD_NUMBER'
+                    sh 'docker logout'
                 }
-                // Add your test commands here
             }
         }
+
         stage('Deploy') {
             steps {
-                script{
-                    sh 'echo "Deploying the project..."'
-                    // ssh '''
-                    //     // remove container if it exists
-                    //     ssh root@13.211.148.233 /var/projects/phpapp/updated_image_version.sh ${BUILD_NUMBER}
-                    // '''
-                    sh 'ssh root@13.211.148.233 /var/projects/phpapp/deploy.sh ${BUILD_NUMBER}'
-                // Add your deploy commands here
+                sh 'echo "Deploying the project..."'
+                sshagent(credentials: ['smm-ssh']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@54.66.234.101 "
+                            sudo docker rm -f php-app || true
+                            sudo docker run -d --name php-app -p 9098:80 $IMAGE:$BUILD_NUMBER
+                        "
+                    '''
                 }
-                
             }
         }
     }
