@@ -12,35 +12,12 @@ pipeline {
             }
         }
 
-    stage('Deploy') {
-        steps {
-            sh 'echo "Deploying the project..."'
-            sshagent(credentials: ['smm-ssh']) {
-                sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@54.66.234.101 "
-                        sudo docker network create appnet 2>/dev/null || true
-
-                        sudo docker inspect php-db > /dev/null 2>&1 || sudo docker run -d --name php-db \
-                            --network appnet \
-                            -e MYSQL_DATABASE=wordpress \
-                            -e MYSQL_USER=wordpress \
-                            -e MYSQL_PASSWORD=wordpress_password \
-                            -e MYSQL_ROOT_PASSWORD=root_password \
-                            mysql:5.7
-
-                        sudo docker rm -f php-app || true
-                        sudo docker run -d --name php-app \
-                            --network appnet \
-                            -e MYSQL_HOST=php-db \
-                            -e MYSQL_USER=root \
-                            -e MYSQL_PASSWORD=root_password \
-                            -e MYSQL_DB=wordpress \
-                            -p 9098:80 $IMAGE:$BUILD_NUMBER
-                    "
-                '''
+        stage('Build') {
+            steps {
+                sh 'echo "Building the project..."'
+                sh 'docker build -t $IMAGE:$BUILD_NUMBER -f php/Dockerfile php'
             }
         }
-    }
 
         stage('Push Image') {
             steps {
@@ -61,8 +38,24 @@ pipeline {
                 sshagent(credentials: ['smm-ssh']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no ubuntu@54.66.234.101 "
+                            sudo docker network create appnet 2>/dev/null || true
+
+                            sudo docker inspect php-db > /dev/null 2>&1 || sudo docker run -d --name php-db \
+                                --network appnet \
+                                -e MYSQL_DATABASE=wordpress \
+                                -e MYSQL_USER=wordpress \
+                                -e MYSQL_PASSWORD=wordpress_password \
+                                -e MYSQL_ROOT_PASSWORD=root_password \
+                                mysql:5.7
+
                             sudo docker rm -f php-app || true
-                            sudo docker run -d --name php-app -p 9098:80 $IMAGE:$BUILD_NUMBER
+                            sudo docker run -d --name php-app \
+                                --network appnet \
+                                -e MYSQL_HOST=php-db \
+                                -e MYSQL_USER=root \
+                                -e MYSQL_PASSWORD=root_password \
+                                -e MYSQL_DB=wordpress \
+                                -p 9098:80 $IMAGE:$BUILD_NUMBER
                         "
                     '''
                 }
